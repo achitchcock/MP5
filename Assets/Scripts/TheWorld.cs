@@ -6,6 +6,7 @@ public class TheWorld : MonoBehaviour {
 
     public SliderWithEcho mSlider;
     public SliderWithEcho nSlider;
+    public GameObject controlPointSpheres;
     int m_size;
     int n_size;
     public List<int> triangles;
@@ -48,7 +49,7 @@ public class TheWorld : MonoBehaviour {
 
     void sliderChanged(float val)
     {
-        Debug.Log(val);
+        //Debug.Log(val);
         foreach (GameObject point in controlPoints)
         {
             Destroy(point.gameObject);
@@ -104,10 +105,13 @@ public class TheWorld : MonoBehaviour {
 
     void createControlPoints()
     {
+        controlPointSpheres.transform.DetachChildren();
         foreach (Vector3 point in vertices)
         {
             GameObject p = GameObject.CreatePrimitive(PrimitiveType.Sphere);
             p.transform.localPosition = point;
+            p.transform.parent = controlPointSpheres.transform;
+            p.AddComponent<controlPoint>();
             controlPoints.Add(p);
 
         }
