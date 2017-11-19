@@ -23,11 +23,15 @@ public class ControlPointController : MonoBehaviour {
                 }
                 pointsActive = true;
             }
-            Debug.Log("CTRL");
+            //Debug.Log("CTRL");
 
         }
         else
         {
+            if (true) //child selected
+            {
+
+            }
             if (pointsActive)
             {
                 for (int i = 0; i < transform.childCount; i++)

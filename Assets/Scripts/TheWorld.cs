@@ -7,6 +7,8 @@ public class TheWorld : MonoBehaviour {
     public SliderWithEcho mSlider;
     public SliderWithEcho nSlider;
     public GameObject controlPointSpheres;
+    public GameObject xyzHandle;
+    private GameObject mSelectedPoint;
     int m_size;
     int n_size;
     public List<int> triangles;
@@ -26,6 +28,7 @@ public class TheWorld : MonoBehaviour {
         m_size = 20;
         vertices = new List<Vector3>();
         controlPoints = new List<GameObject>();
+        mSelectedPoint = null;
         triangles = new List<int>();
         calculateVertices();
         createControlPoints();
@@ -34,15 +37,40 @@ public class TheWorld : MonoBehaviour {
         gameObject.AddComponent<MeshRenderer>();
         mesh = GetComponent<MeshFilter>().mesh;
         mesh.Clear();
-
-
-
         createMesh();
+        xyzHandle.SetActive(false);
         
 	}
 	
 	// Update is called once per frame
 	void Update () {
+        if (Input.GetMouseButtonDown(0))
+        {
+            Debug.Log("Clicked!");
+            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+            RaycastHit hit;
+            if (Physics.Raycast(ray,out hit, 100))
+            {
+                if (mSelectedPoint == hit.transform.gameObject)
+                {
+                    mSelectedPoint = null;
+                    xyzHandle.SetActive(false);
+                }
+                else
+                {
+
+                    int num = hit.transform.gameObject.GetComponent<controlPoint>().myNumber;
+                    mSelectedPoint = hit.transform.gameObject;
+                    print("Hit something:" + num);
+                    xyzHandle.SetActive(true);
+                    xyzHandle.transform.localPosition = vertices[num];
+                }
+                
+            }
+                
+
+
+        }
 		
 	}
 
@@ -62,7 +90,7 @@ public class TheWorld : MonoBehaviour {
 
     void calculateVertices()
     {
-        int point = 1;
+        //int point = 1;
         float xs = n_size / (nSlider.GetSliderValue() - 1);
         float zs = m_size / (mSlider.GetSliderValue() - 1);
         for (float z = 0; z < mSlider.GetSliderValue(); z ++)
@@ -70,9 +98,20 @@ public class TheWorld : MonoBehaviour {
             for (float x = 0; x <nSlider.GetSliderValue(); x ++ )
             {
                 vertices.Add(new Vector3(x*xs, 0, z*zs));
-                point += 1;
+                //point += 1;
             }
         }
+    }
+
+    void pointSelected(int num)
+    {
+        
+    }
+
+    void updateVertices(int pointNum)
+    {
+        vertices[pointNum] = controlPoints[pointNum].transform.localPosition;
+        mesh.vertices = vertices.ToArray();
     }
 
     void calculateTriangles()
@@ -106,14 +145,17 @@ public class TheWorld : MonoBehaviour {
     void createControlPoints()
     {
         controlPointSpheres.transform.DetachChildren();
+        int num = 0;
         foreach (Vector3 point in vertices)
         {
             GameObject p = GameObject.CreatePrimitive(PrimitiveType.Sphere);
             p.transform.localPosition = point;
             p.transform.parent = controlPointSpheres.transform;
             p.AddComponent<controlPoint>();
+            p.GetComponent<controlPoint>().SetControlListener(updateVertices);
+            p.GetComponent<controlPoint>().myNumber = num;
+            num++;
             controlPoints.Add(p);
-
         }
     }
 
