@@ -5,10 +5,12 @@ using UnityEngine;
 public class ControlPointController : MonoBehaviour {
 
     private bool pointsActive;
+    public GameObject xyzHandle;
 
 	// Use this for initialization
 	void Start () {
         pointsActive = true;
+        Debug.Assert(xyzHandle != null);
 	}
 	
 	// Update is called once per frame
@@ -23,16 +25,10 @@ public class ControlPointController : MonoBehaviour {
                 }
                 pointsActive = true;
             }
-            //Debug.Log("CTRL");
-
         }
         else
         {
-            if (true) //child selected
-            {
-
-            }
-            if (pointsActive)
+            if (!xyzHandle.activeSelf)
             {
                 for (int i = 0; i < transform.childCount; i++)
                 {
