@@ -48,6 +48,7 @@ public class TheWorld : MonoBehaviour {
         mesh = GetComponent<MeshFilter>().mesh;
         mesh.Clear();
         createMesh();
+        reset.onClick.AddListener(resetMesh);
         xyzHandle.transform.FindChild("X").GetComponent<mouseDrag>().setDragListner(pointMovedX);
         xyzHandle.transform.FindChild("X").GetComponent<mouseDrag>().up = false;
         xyzHandle.transform.FindChild("Y").GetComponent<mouseDrag>().setDragListner(pointMovedY);
@@ -129,6 +130,9 @@ public class TheWorld : MonoBehaviour {
         {
             Destroy(point.gameObject);
         }
+        mesh.Clear();
+
+
         controlPoints.Clear();
         vertices.Clear();
         normals.Clear();
@@ -148,20 +152,26 @@ public class TheWorld : MonoBehaviour {
         mesh.normals = normals.ToArray();
     }
 
-    /*void resetMesh()
+    void resetMesh()
     {
+        mesh.Clear();
         vertices.Clear();
+        foreach (var pt in controlPoints)
+        {
+            GameObject.Destroy(pt);
+        }
         controlPoints.Clear();
         adjacencies.Clear();
-        //mSelectedPoint = null;
+        mSelectedPoint = null;
+        xyzHandle.SetActive(false);
         triangles.Clear();
         calculateVertices();
-        createControlPoints();
         calculateTriangles();
         calculateNormals();
+        createControlPoints();
         createNormals();
         createMesh();
-    }*/
+    }
 
     void calculateVertices()
     {
