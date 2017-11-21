@@ -7,10 +7,14 @@ public class TheWorld : MonoBehaviour {
 
     public SliderWithEcho mSlider;
     public SliderWithEcho nSlider;
+    public SliderWithEcho cylinderRot;
+    public Dropdown meshType;
     public GameObject controlPointSpheres;
     public GameObject xyzHandle;
     public Button reset;
     private GameObject mSelectedPoint;
+    private bool isPlane;
+    private Vector2 cylinderCenter;
     int m_size;
     int n_size;
     public List<int> triangles;
@@ -30,7 +34,8 @@ public class TheWorld : MonoBehaviour {
         nSlider.InitSliderRange(2, 20, 10);
         nSlider.SetSliderListener(sliderChanged);
         nSlider.TheSlider.wholeNumbers = true;
-        //reset.onClick.AddListener(resetMesh);
+        meshType.value = 0;
+        meshType.onValueChanged.AddListener(initMeshType);
         n_size = 20;
         m_size = 20;
         vertices = new List<Vector3>();
@@ -38,16 +43,18 @@ public class TheWorld : MonoBehaviour {
         adjacencies = new Dictionary<int, List<Vector3>>();
         mSelectedPoint = null;
         triangles = new List<int>();
-        calculateVertices();
-        createControlPoints();
-        calculateTriangles();
-        calculateNormals();
-        createNormals();
+        cylinderCenter = new Vector2(5, 5);
+        cylinderRot.InitSliderRange(10,360,270);
+        //calculateVertices();  // replace with initmesh(0)
+        //createControlPoints();  // replace with initmesh(0)
+        //calculateTriangles();  // replace with initmesh(0)
+        //calculateNormals();  // replace with initmesh(0)
+        //createNormals();  // replace with initmesh(0)
         gameObject.AddComponent<MeshFilter>();
         gameObject.AddComponent<MeshRenderer>();
         mesh = GetComponent<MeshFilter>().mesh;
-        mesh.Clear();
-        createMesh();
+        //mesh.Clear();  // replace with initmesh(0)
+        //createMesh();  // replace with initmesh(0)
         reset.onClick.AddListener(resetMesh);
         xyzHandle.transform.FindChild("X").GetComponent<mouseDrag>().setDragListner(pointMovedX);
         xyzHandle.transform.FindChild("X").GetComponent<mouseDrag>().up = false;
@@ -55,12 +62,10 @@ public class TheWorld : MonoBehaviour {
         xyzHandle.transform.FindChild("Y").GetComponent<mouseDrag>().up = false;
         xyzHandle.transform.FindChild("Z").GetComponent<mouseDrag>().setDragListner(pointMovedZ);
         xyzHandle.transform.FindChild("Z").GetComponent<mouseDrag>().up = true;
+        //xyzHandle.SetActive(false);  // replace with initmesh(0)
+        initMeshType(0);
+    }
 
-        xyzHandle.SetActive(false);
-        
-        
-	}
-	
 	// Update is called once per frame
 	void Update () {
         if (Input.GetMouseButtonDown(0))
@@ -125,14 +130,21 @@ public class TheWorld : MonoBehaviour {
 
     void sliderChanged(float val)
     {
-        xyzHandle.SetActive(false);
+        if (isPlane)
+        {
+            initMeshType(0);
+
+        }
+        else
+        {
+            initMeshType(1);
+        }
+        /*xyzHandle.SetActive(false);
         foreach (GameObject point in controlPoints)
         {
             Destroy(point.gameObject);
         }
         mesh.Clear();
-
-
         controlPoints.Clear();
         vertices.Clear();
         normals.Clear();
@@ -142,18 +154,28 @@ public class TheWorld : MonoBehaviour {
         calculateNormals();
         createControlPoints();
         createNormals();
-        createMesh();
+        createMesh();*/
     }
 
-    void createMesh()
+    void initMeshType(int val)
     {
-        mesh.vertices = vertices.ToArray();
-        mesh.triangles = triangles.ToArray();
-        mesh.normals = normals.ToArray();
-    }
-
-    void resetMesh()
-    {
+        // 0 == Plane
+        if (val == 0)
+        {
+            isPlane = true;
+            mSlider.TheSlider.maxValue = 20;
+            mSlider.TheSlider.minValue = 2;
+            nSlider.TheSlider.maxValue = 20;
+            nSlider.TheSlider.minValue = 2;
+        }
+        else if (val == 1)
+        {
+            isPlane = false;
+            mSlider.TheSlider.maxValue = 20;
+            mSlider.TheSlider.minValue = 4;
+            nSlider.TheSlider.maxValue = 20;
+            nSlider.TheSlider.minValue = 2 ;
+        }
         mesh.Clear();
         vertices.Clear();
         foreach (var pt in controlPoints)
@@ -171,20 +193,64 @@ public class TheWorld : MonoBehaviour {
         createControlPoints();
         createNormals();
         createMesh();
+
+    }
+
+    void createMesh()
+    {
+        mesh.vertices = vertices.ToArray();
+        mesh.triangles = triangles.ToArray();
+        mesh.normals = normals.ToArray();
+    }
+
+    void resetMesh()
+    {
+        if (isPlane)
+        {
+            initMeshType(0);
+        }
+        else
+        {
+            initMeshType(1);
+        }
     }
 
     void calculateVertices()
     {
         vertices.Clear();
-        float xs = n_size / (nSlider.GetSliderValue() - 1);
-        float zs = m_size / (mSlider.GetSliderValue() - 1);
-        for (float z = 0; z < mSlider.GetSliderValue(); z ++)
+        if (isPlane)
         {
-            for (float x = 0; x <nSlider.GetSliderValue(); x ++ )
+            float xs = n_size / (nSlider.GetSliderValue() - 1);
+            float zs = m_size / (mSlider.GetSliderValue() - 1);
+            for (float z = 0; z < mSlider.GetSliderValue(); z++)
             {
-                vertices.Add(new Vector3(x*xs, 0, z*zs));
+                for (float x = 0; x < nSlider.GetSliderValue(); x++)
+                {
+                    vertices.Add(new Vector3(x * xs, 0, z * zs));
+                }
             }
         }
+        else
+        {
+            int radius = 4;
+            float init_x = cylinderCenter.x + radius;
+            int m = (int)mSlider.GetSliderValue();
+            int n = (int)nSlider.GetSliderValue();
+            List<Vector3> circlePoints = new List<Vector3>();
+            float angle = cylinderRot.GetSliderValue() / (m - 1);
+            for (int y= n_size; y >= 0; y-=n_size/n)
+            {
+                for (int i = 0; i < m; i++)
+                {
+                    //float
+                    // FINISH BEFORE RUN
+                    //circlePoints.Add(new Vector3(cylinderCenter.x + radius, y,  ));
+                }
+            }
+            
+
+        }
+        
     }
 
     void pointMovedX(float dist)
@@ -207,7 +273,7 @@ public class TheWorld : MonoBehaviour {
 
     void pointMovedZ(float dist)
     {
-        if(dist!=0)
+        //if(dist!=0)
             //print("Z: " + dist);
         mSelectedPoint.transform.Translate(new Vector3(0, 0, dist));
         xyzHandle.transform.Translate(new Vector3(0, 0, dist));
@@ -229,16 +295,19 @@ public class TheWorld : MonoBehaviour {
 
     void calculateTriangles()
     {
+        
         triangles.Clear();
         normals.Clear();
         adjacencies.Clear();
         int n = (int) nSlider.GetSliderValue();
         int m = (int) mSlider.GetSliderValue();
+        
         for (int i = 0; i < vertices.Count; i++)
         {
             adjacencies.Add(i, new List<Vector3>());
-            //print("Added: " + i);
+            print("Added: " + i);
         }
+        
         for (int y = 0; y < (m-1); y++)
         {
             for (int x = 0; x < (n - 1); x++)
@@ -246,7 +315,7 @@ public class TheWorld : MonoBehaviour {
                 {
                     // triangle number
                     int i = y*n + x;
-
+                    print("Here!"+ i);
                     // lower triangle
                     int c1 = i;
                     int c2 = i + n;
@@ -319,8 +388,13 @@ public class TheWorld : MonoBehaviour {
             p.AddComponent<controlPoint>();
             p.GetComponent<controlPoint>().SetControlListener(updateVertices);
             p.GetComponent<controlPoint>().myNumber = num;
+            if (!isPlane && num % mSlider.GetSliderValue() != 0)
+            {
+                p.layer = 2;  // ignore raycast
+            }
             num++;
             controlPoints.Add(p);
+
         }
     }
 
