@@ -35,7 +35,7 @@ public class TheWorld : MonoBehaviour {
         nSlider.InitSliderRange(2, 20, 10);
         nSlider.SetSliderListener(sliderChanged);
         nSlider.TheSlider.wholeNumbers = true;
-        meshType.value = 1;
+        meshType.value = 0;
         meshType.onValueChanged.AddListener(initMeshType);
         n_size = 20;
         m_size = 20;
@@ -47,16 +47,9 @@ public class TheWorld : MonoBehaviour {
         cylinderCenter = new Vector2(10, 0);
         cylinderRot.InitSliderRange(10,360,270);
         circlePoints = new List<Vector3>();
-        //calculateVertices();  // replace with initmesh(0)
-        //createControlPoints();  // replace with initmesh(0)
-        //calculateTriangles();  // replace with initmesh(0)
-        //calculateNormals();  // replace with initmesh(0)
-        //createNormals();  // replace with initmesh(0)
         gameObject.AddComponent<MeshFilter>();
         gameObject.AddComponent<MeshRenderer>();
         mesh = GetComponent<MeshFilter>().mesh;
-        //mesh.Clear();  // replace with initmesh(0)
-        //createMesh();  // replace with initmesh(0)
         reset.onClick.AddListener(resetMesh);
         xyzHandle.transform.FindChild("X").GetComponent<mouseDrag>().setDragListner(pointMovedX);
         xyzHandle.transform.FindChild("X").GetComponent<mouseDrag>().up = false;
@@ -64,7 +57,6 @@ public class TheWorld : MonoBehaviour {
         xyzHandle.transform.FindChild("Y").GetComponent<mouseDrag>().up = false;
         xyzHandle.transform.FindChild("Z").GetComponent<mouseDrag>().setDragListner(pointMovedZ);
         xyzHandle.transform.FindChild("Z").GetComponent<mouseDrag>().up = true;
-        //xyzHandle.SetActive(false);  // replace with initmesh(0)
         initMeshType(meshType.value);
     }
 
