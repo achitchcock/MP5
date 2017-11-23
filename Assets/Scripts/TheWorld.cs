@@ -20,6 +20,7 @@ public class TheWorld : MonoBehaviour {
     public List<int> triangles;
     public List<Vector3> vertices;
     public List<Vector3> normals;
+    List<Vector3> circlePoints; 
     public Dictionary<int, List<Vector3>> adjacencies;
     List<GameObject> controlPoints;
     Mesh mesh;
@@ -45,6 +46,7 @@ public class TheWorld : MonoBehaviour {
         triangles = new List<int>();
         cylinderCenter = new Vector2(10, 0);
         cylinderRot.InitSliderRange(10,360,270);
+        circlePoints = new List<Vector3>();
         //calculateVertices();  // replace with initmesh(0)
         //createControlPoints();  // replace with initmesh(0)
         //calculateTriangles();  // replace with initmesh(0)
@@ -232,13 +234,26 @@ public class TheWorld : MonoBehaviour {
         }
         else
         {
-            int radius = 4;
+            float radius = 4;
             float init_x = cylinderCenter.x + radius;
             int m = (int)mSlider.GetSliderValue();
             int n = (int)nSlider.GetSliderValue();
-            List<Vector3> circlePoints = new List<Vector3>();
+            if (circlePoints.Capacity == 0)
+            {
+                for (int y = n_size; y > 0; y -= n_size / n)
+                {
+                    circlePoints.Add(new Vector3(cylinderCenter.x+radius,y,cylinderCenter.y));
+                }
+            }
+            else
+            {
+                for (int y = 0; y < n; y++)
+                {
+                    circlePoints[y] = controlPoints[y * m].transform.localPosition;
+                }
+            }
             float angle = cylinderRot.GetSliderValue() / (m - 1);
-            for (int y= n_size; y > 0; y-=n_size/n)
+            foreach (Vector3 cpt in circlePoints)
             {
                 for (int i = 0; i < m; i++)
                 {
@@ -246,16 +261,14 @@ public class TheWorld : MonoBehaviour {
                     // FINISH BEFORE RUN
                     // x = cx + r * cos(a)
                     // y = cy + r * sin(a)
+                    radius = cpt.x - cylinderCenter.x;
                     float xpos = cylinderCenter.x + radius * Mathf.Cos(angle * i * (Mathf.PI / 180));
                     float zpos = cylinderCenter.y + radius * Mathf.Sin(angle * i*(Mathf.PI / 180));
                     print("Angle: "+angle * i);
-                    vertices.Add(new Vector3(xpos, y, zpos));
+                    vertices.Add(new Vector3(xpos, cpt.y, zpos));
                 }
             }
-            
-
         }
-        
     }
 
     void pointMovedX(float dist)
@@ -366,7 +379,15 @@ public class TheWorld : MonoBehaviour {
                 Vector3 c3 = vertices[(int)tri.z];
 
                 Vector3 norm = Vector3.Cross((c2 - c1), (c3 - c1));
-                t_norm.Add(norm);
+                if (isPlane)
+                {
+                    t_norm.Add(norm);
+                }
+                else
+                {
+                    t_norm.Add(-norm);
+                }
+                
             }
             Vector3 result = t_norm[0];
             for (int j = 1; j < t_norm.Count; j++)
