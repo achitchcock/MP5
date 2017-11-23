@@ -34,7 +34,7 @@ public class TheWorld : MonoBehaviour {
         nSlider.InitSliderRange(2, 20, 10);
         nSlider.SetSliderListener(sliderChanged);
         nSlider.TheSlider.wholeNumbers = true;
-        meshType.value = 0;
+        meshType.value = 1;
         meshType.onValueChanged.AddListener(initMeshType);
         n_size = 20;
         m_size = 20;
@@ -43,7 +43,7 @@ public class TheWorld : MonoBehaviour {
         adjacencies = new Dictionary<int, List<Vector3>>();
         mSelectedPoint = null;
         triangles = new List<int>();
-        cylinderCenter = new Vector2(5, 5);
+        cylinderCenter = new Vector2(10, 0);
         cylinderRot.InitSliderRange(10,360,270);
         //calculateVertices();  // replace with initmesh(0)
         //createControlPoints();  // replace with initmesh(0)
@@ -63,7 +63,7 @@ public class TheWorld : MonoBehaviour {
         xyzHandle.transform.FindChild("Z").GetComponent<mouseDrag>().setDragListner(pointMovedZ);
         xyzHandle.transform.FindChild("Z").GetComponent<mouseDrag>().up = true;
         //xyzHandle.SetActive(false);  // replace with initmesh(0)
-        initMeshType(0);
+        initMeshType(meshType.value);
     }
 
 	// Update is called once per frame
@@ -238,13 +238,18 @@ public class TheWorld : MonoBehaviour {
             int n = (int)nSlider.GetSliderValue();
             List<Vector3> circlePoints = new List<Vector3>();
             float angle = cylinderRot.GetSliderValue() / (m - 1);
-            for (int y= n_size; y >= 0; y-=n_size/n)
+            for (int y= n_size; y > 0; y-=n_size/n)
             {
                 for (int i = 0; i < m; i++)
                 {
                     //float
                     // FINISH BEFORE RUN
-                    //circlePoints.Add(new Vector3(cylinderCenter.x + radius, y,  ));
+                    // x = cx + r * cos(a)
+                    // y = cy + r * sin(a)
+                    float xpos = cylinderCenter.x + radius * Mathf.Cos(angle * i * (Mathf.PI / 180));
+                    float zpos = cylinderCenter.y + radius * Mathf.Sin(angle * i*(Mathf.PI / 180));
+                    print("Angle: "+angle * i);
+                    vertices.Add(new Vector3(xpos, y, zpos));
                 }
             }
             
@@ -301,11 +306,11 @@ public class TheWorld : MonoBehaviour {
         adjacencies.Clear();
         int n = (int) nSlider.GetSliderValue();
         int m = (int) mSlider.GetSliderValue();
-        
+        print("Vertices:"+vertices.Count);
         for (int i = 0; i < vertices.Count; i++)
         {
             adjacencies.Add(i, new List<Vector3>());
-            print("Added: " + i);
+            //print("Added: " + i);
         }
         
         for (int y = 0; y < (m-1); y++)
@@ -315,7 +320,7 @@ public class TheWorld : MonoBehaviour {
                 {
                     // triangle number
                     int i = y*n + x;
-                    print("Here!"+ i);
+                    //print("Here!"+ i);
                     // lower triangle
                     int c1 = i;
                     int c2 = i + n;
@@ -369,7 +374,7 @@ public class TheWorld : MonoBehaviour {
                 result += t_norm[j];
             }
             normals.Add(result);
-            print("Added Normal: "+i);
+            //print("Added Normal: "+i);
         }
     }
 
@@ -400,7 +405,7 @@ public class TheWorld : MonoBehaviour {
 
     void createNormals()
     {
-        print("creating normals");
+        //print("creating normals");
         for (int i = 0; i < controlPoints.Count; i++)
         {
             if (controlPoints[i].transform.childCount > 0)

@@ -21,7 +21,7 @@ public class ControlPointController : MonoBehaviour {
             {
                 for (int i = 0; i < transform.childCount; i++)
                 {
-                    transform.GetChild(i).transform.gameObject.SetActive(true);
+                    //transform.GetChild(i).transform.gameObject.SetActive(true);
                 }
                 pointsActive = true;
             }
@@ -32,7 +32,7 @@ public class ControlPointController : MonoBehaviour {
             {
                 for (int i = 0; i < transform.childCount; i++)
                 {
-                    transform.GetChild(i).transform.gameObject.SetActive(false);
+                    //transform.GetChild(i).transform.gameObject.SetActive(false);
                 }
                 pointsActive = false;
             }
