@@ -46,6 +46,7 @@ public class TheWorld : MonoBehaviour {
         triangles = new List<int>();
         cylinderCenter = new Vector2(10, 0);
         cylinderRot.InitSliderRange(10,360,270);
+        cylinderRot.SetSliderListener(angleChanged);
         circlePoints = new List<Vector3>();
         gameObject.AddComponent<MeshFilter>();
         gameObject.AddComponent<MeshRenderer>();
@@ -121,7 +122,7 @@ public class TheWorld : MonoBehaviour {
         }
 	}
 
-
+    // Mesh resolution sliders
     void sliderChanged(float val)
     {
         if (isPlane)
@@ -133,24 +134,9 @@ public class TheWorld : MonoBehaviour {
         {
             initMeshType(1);
         }
-        /*xyzHandle.SetActive(false);
-        foreach (GameObject point in controlPoints)
-        {
-            Destroy(point.gameObject);
-        }
-        mesh.Clear();
-        controlPoints.Clear();
-        vertices.Clear();
-        normals.Clear();
-        triangles.Clear();
-        calculateVertices();
-        calculateTriangles();
-        calculateNormals();
-        createControlPoints();
-        createNormals();
-        createMesh();*/
     }
 
+    //  Initialize a mesh that is a plane or a cylinder
     void initMeshType(int val)
     {
         // 0 == Plane
@@ -207,6 +193,16 @@ public class TheWorld : MonoBehaviour {
         {
             initMeshType(1);
         }
+    }
+
+    void angleChanged(float angle)
+    {
+        calculateVertices();
+        calculateNormals();
+        createControlPoints();
+        mesh.vertices = vertices.ToArray();
+        mesh.normals = normals.ToArray();
+        createNormals();
     }
 
     void calculateVertices()
@@ -396,7 +392,12 @@ public class TheWorld : MonoBehaviour {
 
     void createControlPoints()
     {
+        foreach (GameObject cpt in controlPoints)
+        {
+            Destroy(cpt);
+        }
         controlPointSpheres.transform.DetachChildren();
+        controlPoints.Clear();
         int num = 0;
         foreach (Vector3 point in vertices)
         {
