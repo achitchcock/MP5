@@ -44,7 +44,7 @@ public class TheWorld : MonoBehaviour {
         adjacencies = new Dictionary<int, List<Vector3>>();
         mSelectedPoint = null;
         triangles = new List<int>();
-        cylinderCenter = new Vector2(10, 0);
+        cylinderCenter = new Vector2(10, 8);
         cylinderRot.InitSliderRange(10,360,270);
         cylinderRot.SetSliderListener(angleChanged);
         circlePoints = new List<Vector3>();
@@ -154,7 +154,7 @@ public class TheWorld : MonoBehaviour {
             mSlider.TheSlider.maxValue = 20;
             mSlider.TheSlider.minValue = 4;
             nSlider.TheSlider.maxValue = 20;
-            nSlider.TheSlider.minValue = 2 ;
+            nSlider.TheSlider.minValue = 4 ;
         }
         mesh.Clear();
         vertices.Clear();
@@ -199,12 +199,18 @@ public class TheWorld : MonoBehaviour {
 
     void angleChanged(float angle)
     {
-        calculateVertices();
-        calculateNormals();
-        createControlPoints();
-        mesh.vertices = vertices.ToArray();
-        mesh.normals = normals.ToArray();
-        createNormals();
+        int m = (int)mSlider.GetSliderValue();
+        for (int i = 0; i < m; i++)
+        {
+            followPoint(i * m);
+        }
+
+        //calculateVertices();
+        //calculateNormals();
+        //createControlPoints();
+        //mesh.vertices = vertices.ToArray();
+        //mesh.normals = normals.ToArray();
+        //createNormals();
     }
 
     void calculateVertices()
@@ -232,33 +238,39 @@ public class TheWorld : MonoBehaviour {
             {
                 for (int y = n_size; y > 0; y -= n_size / n)
                 {
-                    circlePoints.Add(new Vector3(cylinderCenter.x+radius,y,cylinderCenter.y));
+                    //circlePoints.Add(new Vector3(cylinderCenter.x+radius,y,cylinderCenter.y));
                 }
             }
             else
             {
-                print(controlPoints.Count);
+                //print(controlPoints.Count);
 
-                for (int y = 0; y < n; y++)
+                //for (int y = 0; y < n; y++)
                 {
-                    circlePoints[y] = controlPoints[y * m].transform.localPosition;
+                    //circlePoints[y] = controlPoints[y * m].transform.localPosition;
                     //print(circlePoints[y]);
                     //print(y * m);
                     //print(controlPoints[y * m]);
                 }
             }
-            float angle = cylinderRot.GetSliderValue() / (m - 1);
-            foreach (Vector3 cpt in circlePoints)
+            float angle = cylinderRot.GetSliderValue() / (n - 1);
+            float y_loc = -m_size / 2;
+            float offset = (float)m_size / (float)(m-1);
+            for (int j = 0; j < m; j++)
             {
-                for (int i = 0; i < m; i++)
+                for (int i = 0; i < n; i++)
                 {
-                    radius = cpt.x - cylinderCenter.x;
+                    print("offset:"+(float)m_size / (float)m);
+                    //radius = cpt.x - cylinderCenter.x;
                     float xpos = cylinderCenter.x + radius * Mathf.Cos(angle * i * (Mathf.PI / 180));
                     float zpos = cylinderCenter.y + radius * Mathf.Sin(angle * i*(Mathf.PI / 180));
                     //print("Angle: "+angle * i);
-                    vertices.Add(new Vector3(xpos, cpt.y, zpos));
+                    vertices.Add(new Vector3(xpos, y_loc+j*offset, zpos));
+                    
                 }
+               
             }
+            print("Vert:"+vertices.Capacity);
         }
     }
 
@@ -271,7 +283,7 @@ public class TheWorld : MonoBehaviour {
         updateVertices(controlPoints.IndexOf(mSelectedPoint));
         if (!isPlane)
         {
-            // refesh the mesh
+            followPoint(mSelectedPoint.GetComponent<controlPoint>().myNumber);
         }
     }
 
@@ -280,7 +292,10 @@ public class TheWorld : MonoBehaviour {
         mSelectedPoint.transform.Translate(new Vector3(0, dist, 0));
         xyzHandle.transform.Translate(new Vector3(0, dist, 0));
         updateVertices(controlPoints.IndexOf(mSelectedPoint));
-
+        if (!isPlane)
+        {
+            followPoint(mSelectedPoint.GetComponent<controlPoint>().myNumber);
+        }
     }
 
     void pointMovedZ(float dist)
@@ -288,6 +303,31 @@ public class TheWorld : MonoBehaviour {
         mSelectedPoint.transform.Translate(new Vector3(0, 0, dist));
         xyzHandle.transform.Translate(new Vector3(0, 0, dist));
         updateVertices(controlPoints.IndexOf(mSelectedPoint));
+        if (!isPlane)
+        {
+            followPoint(mSelectedPoint.GetComponent<controlPoint>().myNumber);
+        }
+    }
+
+    void followPoint(int pt)
+    {
+        float radius = controlPoints[pt].transform.localPosition.x - cylinderCenter.x;
+        float zOffset = controlPoints[pt].transform.localPosition.z - cylinderCenter.y;
+        float AdditionalAngle = Mathf.Asin(zOffset / radius);
+        float angle = cylinderRot.GetSliderValue() / (nSlider.GetSliderValue() - 1);
+        for (int i = 1; i < nSlider.GetSliderValue(); i++)
+        {
+
+            float x = cylinderCenter.x + radius * Mathf.Cos((angle+AdditionalAngle) * i * (Mathf.PI / 180));
+            float z = cylinderCenter.y + radius * Mathf.Sin((angle + AdditionalAngle) * i * (Mathf.PI / 180));
+            float y = controlPoints[pt].transform.localPosition.y;
+            controlPoints[pt+i].transform.localPosition = new Vector3(x, y, z);
+            vertices[pt+i] = controlPoints[pt + i].transform.localPosition;
+        }
+        mesh.vertices = vertices.ToArray();
+        calculateNormals();
+        createNormals();
+        mesh.normals = normals.ToArray();
     }
 
 
@@ -298,9 +338,7 @@ public class TheWorld : MonoBehaviour {
         mesh.vertices = vertices.ToArray();
         calculateNormals();
         createNormals();
-
         mesh.normals = normals.ToArray();
-
     }
 
     void calculateTriangles()
@@ -370,7 +408,7 @@ public class TheWorld : MonoBehaviour {
                 Vector3 c2 = vertices[(int)tri.y];
                 Vector3 c3 = vertices[(int)tri.z];
 
-                Vector3 norm = Vector3.Cross((c2 - c1), (c3 - c1));
+                Vector3 norm = Vector3.Cross((c2 - c1), (c3 - c1)).normalized;
                 if (isPlane)
                 {
                     t_norm.Add(norm);
@@ -386,9 +424,32 @@ public class TheWorld : MonoBehaviour {
             {
                 result += t_norm[j];
             }
-            normals.Add(result);
+            if (isPlane)
+            {
+                normals.Add(result);
+            }
+            else
+            {
+                normals.Add(-result);
+            }
+            
             //print("Added Normal: "+i);
         }
+        // cylinder rotation 360 - merge start/end normals
+        if (!isPlane && cylinderRot.GetSliderValue()==360)
+        {
+            print("Full circle!");
+            int m = (int)mSlider.GetSliderValue();
+            int n = (int)nSlider.GetSliderValue();
+            for (int i = 0; i < normals.Count; i += n)
+            {
+                
+                Vector3 res = (normals[i + n - 1] + normals[i]).normalized;
+                normals[i] = res;
+                normals[i + n - 1] = res;
+            }
+        }
+        
     }
 
 
@@ -414,6 +475,7 @@ public class TheWorld : MonoBehaviour {
             if (!isPlane && num % mSlider.GetSliderValue() != 0)
             {
                 p.layer = 2;  // ignore raycast
+                p.GetComponent<Renderer>().material.color = Color.black;
             }
             num++;
             controlPoints.Add(p);
