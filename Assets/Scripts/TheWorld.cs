@@ -21,7 +21,6 @@ public class TheWorld : MonoBehaviour {
     private List<int> triangles;
     private List<Vector3> vertices;
     private List<Vector3> normals;
-    private List<Vector3> circlePoints;
     private List<GameObject> controlPoints;
     private Dictionary<int, List<Vector3>> adjacencies;
     private Mesh mesh;
@@ -48,7 +47,6 @@ public class TheWorld : MonoBehaviour {
         cylinderCenter = new Vector2(10, 8);
         cylinderRot.InitSliderRange(10,360,270);
         cylinderRot.SetSliderListener(angleChanged);
-        circlePoints = new List<Vector3>();
         gameObject.AddComponent<MeshFilter>();
         gameObject.AddComponent<MeshRenderer>();
         mesh = GetComponent<MeshFilter>().mesh;
@@ -191,18 +189,20 @@ public class TheWorld : MonoBehaviour {
         }
         else
         {
-            circlePoints.Clear();
             initMeshType(1);
         }
     }
 
     void angleChanged(float angle)
     {
-        int m = (int)mSlider.GetSliderValue();
-        int n = (int)nSlider.GetSliderValue();
-        for (int i = 0; i < m; i++)
+        if (!isPlane)
         {
-            followPoint(i * n);
+            int m = (int)mSlider.GetSliderValue();
+            int n = (int)nSlider.GetSliderValue();
+            for (int i = 0; i < m; i++)
+            {
+                followPoint(i * n);
+            }
         }
     }
 
@@ -227,25 +227,6 @@ public class TheWorld : MonoBehaviour {
             float init_x = cylinderCenter.x + radius;
             int m = (int)mSlider.GetSliderValue();
             int n = (int)nSlider.GetSliderValue();
-            if (circlePoints.Capacity == 0)
-            {
-                for (int y = n_size; y > 0; y -= n_size / n)
-                {
-                    //circlePoints.Add(new Vector3(cylinderCenter.x+radius,y,cylinderCenter.y));
-                }
-            }
-            else
-            {
-                //print(controlPoints.Count);
-
-                //for (int y = 0; y < n; y++)
-                {
-                    //circlePoints[y] = controlPoints[y * m].transform.localPosition;
-                    //print(circlePoints[y]);
-                    //print(y * m);
-                    //print(controlPoints[y * m]);
-                }
-            }
             float angle = cylinderRot.GetSliderValue() / (n - 1);
             float y_loc = -m_size / 2;
             float offset = (float)m_size / (float)(m-1);
@@ -253,24 +234,16 @@ public class TheWorld : MonoBehaviour {
             {
                 for (int i = 0; i < n; i++)
                 {
-                    print("offset:"+(float)m_size / (float)m);
-                    //radius = cpt.x - cylinderCenter.x;
                     float xpos = cylinderCenter.x + radius * Mathf.Cos(angle * i * (Mathf.PI / 180));
                     float zpos = cylinderCenter.y + radius * Mathf.Sin(angle * i*(Mathf.PI / 180));
-                    //print("Angle: "+angle * i);
                     vertices.Add(new Vector3(xpos, y_loc+j*offset, zpos));
-                    
                 }
-               
             }
-            print("Vert:"+vertices.Capacity);
         }
     }
 
     void pointMovedX(float dist)
     {
-        if (dist != 0)
-            //print("X: " + dist);
         mSelectedPoint.transform.Translate(new Vector3(dist, 0, 0));
         xyzHandle.transform.Translate(new Vector3(dist, 0, 0));
         updateVertices(controlPoints.IndexOf(mSelectedPoint));
@@ -304,14 +277,12 @@ public class TheWorld : MonoBehaviour {
 
     void followPoint(int pt)
     {
-        print("Point:" + pt);
         float radius = controlPoints[pt].transform.localPosition.x - cylinderCenter.x;
         float zOffset = controlPoints[pt].transform.localPosition.z - cylinderCenter.y;
         float AdditionalAngle = Mathf.Asin(zOffset / radius);
         float angle = cylinderRot.GetSliderValue() / (nSlider.GetSliderValue() - 1);
         for (int i = 1; i < nSlider.GetSliderValue(); i++)
         {
-
             float x = cylinderCenter.x + radius * Mathf.Cos((angle+AdditionalAngle) * i * (Mathf.PI / 180));
             float z = cylinderCenter.y + radius * Mathf.Sin((angle + AdditionalAngle) * i * (Mathf.PI / 180));
             float y = controlPoints[pt].transform.localPosition.y;

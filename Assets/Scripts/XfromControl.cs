@@ -7,6 +7,7 @@ public class XfromControl : MonoBehaviour {
     public Toggle T, R, S;
     public SliderWithEcho X, Y, Z;
     public Text ObjectName;
+    public GameObject theWorld;
 
     private Transform mSelected;
     private Vector3 mPreviousSliderValues = Vector3.zero;

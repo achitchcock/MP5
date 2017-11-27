@@ -26,22 +26,26 @@ public class mouseDrag : MonoBehaviour {
 
     void OnMouseDrag()
     {
-        float new_x = Input.mousePosition.x;
-        float new_y = Input.mousePosition.y;
-        float distance = Mathf.Sqrt(Mathf.Pow((float)(new_x - init_x) , 2) + Mathf.Pow((float)(new_y - init_y),  2));
-        Vector2 dist = new Vector2(new_x, new_y) - new Vector2(init_x, init_y);
-
-        if(up)
+        if (!Input.GetKey("left alt"))
         {
-            mCallBack(0.1f*(new_y - init_y));
-        }
-        else
-        {
-            mCallBack(0.1f*(new_x - init_x));
-        }
+            float new_x = Input.mousePosition.x;
+            float new_y = Input.mousePosition.y;
+            float distance = Mathf.Sqrt(Mathf.Pow((float)(new_x - init_x), 2) + Mathf.Pow((float)(new_y - init_y), 2));
+            Vector2 dist = new Vector2(new_x, new_y) - new Vector2(init_x, init_y);
 
-        init_x = new_x;
-        init_y = new_y;
+            if (up)
+            {
+                mCallBack(0.1f * (new_y - init_y));
+            }
+            else
+            {
+                mCallBack(0.1f * (new_x - init_x));
+            }
+
+            init_x = new_x;
+            init_y = new_y;
+        }
+       
     }
 
 }
