@@ -13,19 +13,19 @@ public class TheWorld : MonoBehaviour {
     public GameObject xyzHandle;
     public Button reset;
     private GameObject mSelectedPoint;
+    private GameObject mSelectedDirection;
     private bool isPlane;
     private Vector2 cylinderCenter;
-    int m_size;
-    int n_size;
-    public List<int> triangles;
-    public List<Vector3> vertices;
-    public List<Vector3> normals;
-    List<Vector3> circlePoints; 
-    public Dictionary<int, List<Vector3>> adjacencies;
-    List<GameObject> controlPoints;
-    Mesh mesh;
-    GameObject mSelectedDirection;
-    Material mOriginalMaterial;
+    private int m_size;
+    private int n_size;
+    private List<int> triangles;
+    private List<Vector3> vertices;
+    private List<Vector3> normals;
+    private List<Vector3> circlePoints;
+    private List<GameObject> controlPoints;
+    private Dictionary<int, List<Vector3>> adjacencies;
+    private Mesh mesh;
+    private Material mOriginalMaterial;
 
     // Use this for initialization
     void Start () {
@@ -42,6 +42,7 @@ public class TheWorld : MonoBehaviour {
         vertices = new List<Vector3>();
         controlPoints = new List<GameObject>();
         adjacencies = new Dictionary<int, List<Vector3>>();
+        normals = new List<Vector3>();
         mSelectedPoint = null;
         triangles = new List<int>();
         cylinderCenter = new Vector2(10, 8);
@@ -87,8 +88,6 @@ public class TheWorld : MonoBehaviour {
                     int num = hit.transform.gameObject.GetComponent<controlPoint>().myNumber;
                     mSelectedPoint = hit.transform.gameObject;
                     mSelectedPoint.GetComponent<Renderer>().material = (Material)Resources.Load("Materials/yellow", typeof(Material));
-                    //Debug.Log(mSelectedPoint.GetComponent<Renderer>().material);
-                    //print("Hit something:" + num);
                     xyzHandle.SetActive(true);
                     xyzHandle.transform.localPosition = controlPoints[num].transform.localPosition;
                 }
@@ -200,17 +199,11 @@ public class TheWorld : MonoBehaviour {
     void angleChanged(float angle)
     {
         int m = (int)mSlider.GetSliderValue();
+        int n = (int)nSlider.GetSliderValue();
         for (int i = 0; i < m; i++)
         {
-            followPoint(i * m);
+            followPoint(i * n);
         }
-
-        //calculateVertices();
-        //calculateNormals();
-        //createControlPoints();
-        //mesh.vertices = vertices.ToArray();
-        //mesh.normals = normals.ToArray();
-        //createNormals();
     }
 
     void calculateVertices()
@@ -311,6 +304,7 @@ public class TheWorld : MonoBehaviour {
 
     void followPoint(int pt)
     {
+        print("Point:" + pt);
         float radius = controlPoints[pt].transform.localPosition.x - cylinderCenter.x;
         float zOffset = controlPoints[pt].transform.localPosition.z - cylinderCenter.y;
         float AdditionalAngle = Mathf.Asin(zOffset / radius);
@@ -363,7 +357,6 @@ public class TheWorld : MonoBehaviour {
                 {
                     // triangle number
                     int i = y*n + x;
-                    //print("Here!"+ i);
                     // lower triangle
                     int c1 = i;
                     int c2 = i + n;
@@ -373,6 +366,7 @@ public class TheWorld : MonoBehaviour {
                     adjacencies[c1].Add(t1);
                     adjacencies[c2].Add(t1);
                     adjacencies[c3].Add(t1);
+
                     //  update triangles list
                     triangles.Add(i);
                     triangles.Add(i + n);
@@ -382,12 +376,14 @@ public class TheWorld : MonoBehaviour {
                     c1 = i;
                     c2 = i + n + 1;
                     c3 = i + 1;
+
                     // update adjacencies list
                     Vector3 t2 = new Vector3(c1, c2, c3);
                     adjacencies[c1].Add(t2);
                     adjacencies[c2].Add(t2);
                     adjacencies[c3].Add(t2);
-                    // update triagles list
+
+                    // update triagnles list
                     triangles.Add(i);
                     triangles.Add(i + n + 1);
                     triangles.Add(i + 1);
@@ -417,7 +413,6 @@ public class TheWorld : MonoBehaviour {
                 {
                     t_norm.Add(-norm);
                 }
-                
             }
             Vector3 result = t_norm[0];
             for (int j = 1; j < t_norm.Count; j++)
@@ -432,8 +427,6 @@ public class TheWorld : MonoBehaviour {
             {
                 normals.Add(-result);
             }
-            
-            //print("Added Normal: "+i);
         }
         // cylinder rotation 360 - merge start/end normals
         if (!isPlane && cylinderRot.GetSliderValue()==360)
@@ -472,7 +465,7 @@ public class TheWorld : MonoBehaviour {
             p.AddComponent<controlPoint>();
             p.GetComponent<controlPoint>().SetControlListener(updateVertices);
             p.GetComponent<controlPoint>().myNumber = num;
-            if (!isPlane && num % mSlider.GetSliderValue() != 0)
+            if (!isPlane && num % nSlider.GetSliderValue() != 0)
             {
                 p.layer = 2;  // ignore raycast
                 p.GetComponent<Renderer>().material.color = Color.black;
@@ -503,10 +496,6 @@ public class TheWorld : MonoBehaviour {
             normLine.transform.localPosition = new Vector3(0, 0, 0);
             normLine.transform.Translate(normLine.transform.up * 2);
             pivot.transform.localRotation = Quaternion.FromToRotation(normLine.transform.up, normals[i]);
-
-
         }
     }
-
-
 }
