@@ -22,6 +22,7 @@ public class TheWorld : MonoBehaviour {
     private List<Vector3> vertices;
     private List<Vector3> normals;
     private List<GameObject> controlPoints;
+    public List<Vector2> uv;
     private Dictionary<int, List<Vector3>> adjacencies;
     private Mesh mesh;
     private Material mOriginalMaterial;
@@ -167,6 +168,7 @@ public class TheWorld : MonoBehaviour {
         calculateVertices();
         calculateTriangles();
         calculateNormals();
+        calculateUV();
         controlPoints.Clear();
         createControlPoints();
         createNormals();
@@ -179,6 +181,8 @@ public class TheWorld : MonoBehaviour {
         mesh.vertices = vertices.ToArray();
         mesh.triangles = triangles.ToArray();
         mesh.normals = normals.ToArray();
+        mesh.uv = uv.ToArray();
+        //GetComponent<Renderer>().material.
     }
 
     void resetMesh()
@@ -304,6 +308,38 @@ public class TheWorld : MonoBehaviour {
         calculateNormals();
         createNormals();
         mesh.normals = normals.ToArray();
+    }
+
+
+    void calculateUV()//Matrix3x3 trs)
+    {
+
+
+        uv = new List<Vector2>();
+        int m = (int)mSlider.GetSliderValue();
+        int n = (int)nSlider.GetSliderValue();
+        for (int i = 0; i < m; i++)
+        {
+            for (int j = 0; j < n; j++)
+            {
+                float x_trans = 0.5f;
+                float y_trans = 0.2f;
+                float x_scale = 1.5f;
+                float z_scale = 1.5f;
+                float z_rot = 45;
+
+                float x = (((float)j % n) / (n - 1));
+                float y = (((float)i % m) / (m - 1));
+                Vector2 init = new Vector2(x*x_scale, y*z_scale);
+
+                Vector2 rot = Quaternion.AngleAxis(z_rot, Vector3.up) * init;
+
+                Vector2 res = new Vector3(rot.x + x_trans, rot.y + y_trans);
+                //trs
+                uv.Add(res);
+
+            }
+        }
     }
 
     void calculateTriangles()

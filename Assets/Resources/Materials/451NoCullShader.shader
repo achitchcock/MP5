@@ -39,6 +39,7 @@
 			float MyTexOffset_Y;
 			float MyTexScale_X;
 			float MyTexScale_Y;
+			//float MyTexRotationZ;
 			
 			v2f vert (appdata v)
 			{
