@@ -8,7 +8,7 @@ public class XfromControl : MonoBehaviour {
     public SliderWithEcho X, Y, Z;
     public Text ObjectName;
     public GameObject theWorld;
-
+    public Button resetTexture;
     float prevXt, prevYt;
     float prevXs, prevYs;
     float prevZr;
@@ -28,21 +28,44 @@ public class XfromControl : MonoBehaviour {
         Y.SetSliderListener(YValueChanged);
         Z.SetSliderListener(ZValueChanged);
         ignoreListner = false;
+        resetTexture.onClick.AddListener(resetTex);
 
         T.isOn = true;
         R.isOn = false;
         S.isOn = false;
         SetToTranslation(true);
-
+        // previous scale
         prevYs = 1;
         prevXs = 1;
-
+        // previous translation
         prevXt = 0;
         prevYt = 0;
-
+        // previous rotation
         prevZr = 0;
 	}
-	
+
+    void resetTex()
+    {
+        theWorld.GetComponent<TheWorld>().myTRS = Matrix3x3.identity;
+        prevYs = 1;
+        prevXs = 1;
+        prevXt = 0;
+        prevYt = 0;
+        prevZr = 0;
+        if (T.isOn)
+        {
+            SetToTranslation(true);
+        }
+        else if (R.isOn)
+        {
+            SetToRotation(true);
+        }
+        else if (S.isOn)
+        {
+            SetToRotation(true);
+        }
+    }
+
     void SetToTranslation(bool v)
     {
         ignoreListner = true;
