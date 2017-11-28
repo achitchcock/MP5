@@ -318,24 +318,33 @@ public class TheWorld : MonoBehaviour {
         uv = new List<Vector2>();
         int m = (int)mSlider.GetSliderValue();
         int n = (int)nSlider.GetSliderValue();
+
+        // extract these values from a matrix3x3
+
+        float x_trans = 0.5f;
+        float z_trans = 0.2f;
+        float x_scale = 1.5f;
+        float z_scale = 1.5f;
+        float z_rot = 45;
+
+
         for (int i = 0; i < m; i++)
         {
             for (int j = 0; j < n; j++)
             {
-                float x_trans = 0.5f;
-                float y_trans = 0.2f;
-                float x_scale = 1.5f;
-                float z_scale = 1.5f;
-                float z_rot = 45;
-
+                
+                // scale
                 float x = (((float)j % n) / (n - 1));
                 float y = (((float)i % m) / (m - 1));
                 Vector2 init = new Vector2(x*x_scale, y*z_scale);
 
-                Vector2 rot = Quaternion.AngleAxis(z_rot, Vector3.up) * init;
+                // get rotation applied
 
-                Vector2 res = new Vector3(rot.x + x_trans, rot.y + y_trans);
-                //trs
+                Vector2 rot = new Vector2(init.x, init.y);
+                
+                // translate
+                Vector2 res = new Vector3(rot.x + x_trans, rot.y + z_trans);
+                
                 uv.Add(res);
 
             }
