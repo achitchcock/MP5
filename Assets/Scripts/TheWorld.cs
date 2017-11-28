@@ -81,7 +81,7 @@ public class TheWorld : MonoBehaviour {
         xyzHandle.transform.FindChild("X").GetComponent<mouseDrag>().setDragListner(pointMovedX);
         xyzHandle.transform.FindChild("X").GetComponent<mouseDrag>().up = false;
         xyzHandle.transform.FindChild("Y").GetComponent<mouseDrag>().setDragListner(pointMovedY);
-        xyzHandle.transform.FindChild("Y").GetComponent<mouseDrag>().up = false;
+        xyzHandle.transform.FindChild("Y").GetComponent<mouseDrag>().up = true;
         xyzHandle.transform.FindChild("Z").GetComponent<mouseDrag>().setDragListner(pointMovedZ);
         xyzHandle.transform.FindChild("Z").GetComponent<mouseDrag>().up = true;
         initMeshType(meshType.value);
