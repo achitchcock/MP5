@@ -5,6 +5,7 @@
 
 using UnityEngine;
 
+[System.Serializable]
 public struct Matrix3x3
 {
 	// m#row#col

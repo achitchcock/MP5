@@ -1,7 +1,22 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEditor;
+
+[System.Serializable]
+class Configuration {
+	public float m_size;
+	public float n_size;
+	public float cylinderRot;
+	public bool isPlane;
+//	public List<int> triangles;
+	public List<Vector3> vertices;
+//	public List<Vector3> normals; 
+	public Matrix3x3 myTRS;
+	//public Dictionary<int, List<Vector3>> adjacencies;
+}
 
 public class TheWorld : MonoBehaviour {
 
@@ -12,6 +27,9 @@ public class TheWorld : MonoBehaviour {
     public GameObject controlPointSpheres;
     public GameObject xyzHandle;
     public Button reset;
+	public Button saveButton;
+	public Button loadButton;
+
     private GameObject mSelectedPoint;
     private GameObject mSelectedDirection;
     private bool isPlane;
@@ -57,6 +75,8 @@ public class TheWorld : MonoBehaviour {
         //myTRS = Matrix3x3.MultiplyMatrix3x3(Matrix3x3Helpers.CreateRotation(45), myTRS);
         //myTRS = Matrix3x3.MultiplyMatrix3x3(Matrix3x3Helpers.CreateTranslation(new Vector2(-1.5f, 1)), myTRS);
         reset.onClick.AddListener(resetMesh);
+		saveButton.onClick.AddListener (saveToFile);
+		loadButton.onClick.AddListener (loadFromFile);
         xyzHandle.transform.FindChild("X").GetComponent<mouseDrag>().setDragListner(pointMovedX);
         xyzHandle.transform.FindChild("X").GetComponent<mouseDrag>().up = false;
         xyzHandle.transform.FindChild("Y").GetComponent<mouseDrag>().setDragListner(pointMovedY);
@@ -342,7 +362,7 @@ public class TheWorld : MonoBehaviour {
             {
                 
                 // Initial point
-                float x = (((float)j % n) / (n - 1));
+                 float x = (((float)j % n) / (n - 1));
                 float y = (((float)i % m) / (m - 1));
 
                 // scale
@@ -521,4 +541,80 @@ public class TheWorld : MonoBehaviour {
             pivot.transform.localRotation = Quaternion.FromToRotation(normLine.transform.up, normals[i]);
         }
     }
+
+	void saveToFile() {
+		Configuration config = new Configuration ();
+//		config.adjacencies = this.adjacencies;
+		config.myTRS = this.myTRS;
+		config.m_size = this.mSlider.GetSliderValue();
+		config.n_size = this.nSlider.GetSliderValue();
+		config.cylinderRot = this.cylinderRot.GetSliderValue ();
+//		config.normals = this.normals;
+		config.vertices = this.vertices;
+//		config.triangles = this.triangles;
+		config.isPlane = this.isPlane;
+
+		string jsonData = JsonUtility.ToJson (config);
+		string filePath = Path.Combine(Application.persistentDataPath, (isPlane ? "plane" : "cylinder") + "-data.json");
+		File.WriteAllText (filePath, jsonData);
+
+		EditorUtility.DisplayDialog ("Saved!", "saved to " + filePath, "OK");
+	}
+
+	void loadFromFile() {
+		string filePath = Path.Combine(Application.persistentDataPath, (isPlane ? "plane" : "cylinder") + "-data.json");
+
+		if (!File.Exists (filePath)) {
+			return;
+		}
+
+		string jsonData = File.ReadAllText (filePath);
+		Configuration config = JsonUtility.FromJson<Configuration> (jsonData);
+
+		mSlider.InitSliderRange(2, 20, config.m_size);
+		nSlider.InitSliderRange(2, 20, config.n_size);
+		cylinderRot.InitSliderRange (10, 360, config.cylinderRot);
+
+		vertices = config.vertices;
+//		controlPoints = new List<GameObject>();
+//		adjacencies = config.adjacencies;
+//		normals = config.normals;
+//		triangles = config.triangles;
+//		cylinderCenter = new Vector2(10, 8);
+		isPlane = config.isPlane;
+
+		if (isPlane)
+		{
+			mSlider.TheSlider.minValue = nSlider.TheSlider.minValue = 2;
+		}
+		else
+		{
+			mSlider.TheSlider.minValue = nSlider.TheSlider.minValue = 4;
+		}
+		//myTRS = config.myTRS;
+		//myTRS = Matrix3x3.MultiplyMatrix3x3(Matrix3x3Helpers.CreateScale(new Vector2(2, 1)), myTRS);
+		//myTRS = Matrix3x3.MultiplyMatrix3x3(Matrix3x3Helpers.CreateRotation(45), myTRS);
+		//myTRS = Matrix3x3.MultiplyMatrix3x3(Matrix3x3Helpers.CreateTranslation(new Vector2(-1.5f, 1)), myTRS);
+		mSelectedPoint = null;
+		xyzHandle.SetActive (false);
+
+		mesh.Clear();
+		foreach (var pt in controlPoints)
+		{
+			GameObject.Destroy(pt);
+		}
+		controlPoints.Clear();
+
+		adjacencies.Clear();
+		triangles.Clear();
+		//vertices.Clear ();
+
+		//calculateVertices();
+		calculateTriangles();
+		calculateNormals();
+		calculateUV();
+		createControlPoints();
+		createNormals();
+		createMesh();
+	}
 }
