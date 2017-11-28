@@ -22,7 +22,7 @@ public class TheWorld : MonoBehaviour {
     private List<Vector3> vertices;
     private List<Vector3> normals;
     private List<GameObject> controlPoints;
-    public List<Vector2> uv;
+    private List<Vector2> uv;
     public Matrix3x3 myTRS;
     private Dictionary<int, List<Vector3>> adjacencies;
     private Mesh mesh;
@@ -53,7 +53,9 @@ public class TheWorld : MonoBehaviour {
         gameObject.AddComponent<MeshRenderer>();
         mesh = GetComponent<MeshFilter>().mesh;
         myTRS = Matrix3x3.identity;
-        myTRS = Matrix3x3.MultiplyMatrix3x3(Matrix3x3Helpers.CreateScale(new Vector2(2, 1)), myTRS);
+        //myTRS = Matrix3x3.MultiplyMatrix3x3(Matrix3x3Helpers.CreateScale(new Vector2(2, 1)), myTRS);
+        //myTRS = Matrix3x3.MultiplyMatrix3x3(Matrix3x3Helpers.CreateRotation(45), myTRS);
+        //myTRS = Matrix3x3.MultiplyMatrix3x3(Matrix3x3Helpers.CreateTranslation(new Vector2(-1.5f, 1)), myTRS);
         reset.onClick.AddListener(resetMesh);
         xyzHandle.transform.FindChild("X").GetComponent<mouseDrag>().setDragListner(pointMovedX);
         xyzHandle.transform.FindChild("X").GetComponent<mouseDrag>().up = false;
@@ -66,6 +68,9 @@ public class TheWorld : MonoBehaviour {
 
 	// Update is called once per frame
 	void Update () {
+        //myTRS = Matrix3x3.MultiplyMatrix3x3(Matrix3x3Helpers.CreateRotation(1), myTRS);
+        calculateUV();
+        mesh.uv = uv.ToArray();
         if (Input.GetMouseButtonDown(0))
         {
             //Debug.Log("Clicked!");
@@ -365,11 +370,9 @@ public class TheWorld : MonoBehaviour {
         adjacencies.Clear();
         int n = (int) nSlider.GetSliderValue();
         int m = (int) mSlider.GetSliderValue();
-        //print("Vertices:"+vertices.Count);
         for (int i = 0; i < vertices.Count; i++)
         {
             adjacencies.Add(i, new List<Vector3>());
-            //print("Added: " + i);
         }
         
         for (int y = 0; y < (m-1); y++)
@@ -453,7 +456,6 @@ public class TheWorld : MonoBehaviour {
         // cylinder rotation 360 - merge start/end normals
         if (!isPlane && cylinderRot.GetSliderValue()==360)
         {
-            print("Full circle!");
             int m = (int)mSlider.GetSliderValue();
             int n = (int)nSlider.GetSliderValue();
             for (int i = 0; i < normals.Count; i += n)
@@ -500,7 +502,6 @@ public class TheWorld : MonoBehaviour {
 
     void createNormals()
     {
-        //print("creating normals");
         for (int i = 0; i < controlPoints.Count; i++)
         {
             if (controlPoints[i].transform.childCount > 0)

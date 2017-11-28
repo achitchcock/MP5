@@ -9,6 +9,13 @@ public class XfromControl : MonoBehaviour {
     public Text ObjectName;
     public GameObject theWorld;
 
+    float prevXt, prevYt;
+    float prevXs, prevYs;
+    float prevZr;
+
+
+    bool ignoreListner;
+
     private Transform mSelected;
     private Vector3 mPreviousSliderValues = Vector3.zero;
 
@@ -20,133 +27,115 @@ public class XfromControl : MonoBehaviour {
         X.SetSliderListener(XValueChanged);
         Y.SetSliderListener(YValueChanged);
         Z.SetSliderListener(ZValueChanged);
+        ignoreListner = false;
 
         T.isOn = true;
         R.isOn = false;
         S.isOn = false;
         SetToTranslation(true);
+
+        prevYs = 1;
+        prevXs = 1;
+
+        prevXt = 0;
+        prevYt = 0;
+
+        prevZr = 0;
 	}
 	
     void SetToTranslation(bool v)
     {
-        Vector3 p = GetSelectedXformParameter();
-        mPreviousSliderValues = p;
-        X.InitSliderRange(-30, 30, p.x);
-        Y.InitSliderRange(-30, 30, p.y);
-        Z.InitSliderRange(-30, 30, p.z);
+        ignoreListner = true;
+
+        X.InitSliderRange(-4, 4, prevXt);
+        Y.InitSliderRange(-4, 4, prevYt);
+        Z.InitSliderRange(0, 0, 0);
+
+        ignoreListner = false;
     }
 
     void SetToScaling(bool v)
     {
-        Vector3 s = GetSelectedXformParameter();
-        mPreviousSliderValues = s;
-        X.InitSliderRange(0.1f, 20, s.x);
-        Y.InitSliderRange(0.1f, 20, s.y);
-        Z.InitSliderRange(0.1f, 20, s.z);
+        ignoreListner = true;
+
+        X.InitSliderRange(0.1f, 10, prevXs);
+        Y.InitSliderRange(0.1f, 10, prevYs);
+        Z.InitSliderRange(0, 0, 0);
+
+        ignoreListner = false;
     }
 
     void SetToRotation(bool v)
     {
-        Vector3 r = GetSelectedXformParameter();
-        mPreviousSliderValues = r;
-        X.InitSliderRange(-180, 180, r.x);
-        Y.InitSliderRange(-180, 180, r.y);
-        Z.InitSliderRange(-180, 180, r.z);
-        mPreviousSliderValues = r;
+        ignoreListner = true;
+
+        X.InitSliderRange(0, 0, 0);
+        Y.InitSliderRange(0, 0, 0);
+        Z.InitSliderRange(-180, 180, prevZr);
+
+        ignoreListner = false;
     }
 
     void XValueChanged(float v)
     {
-        Vector3 p = GetSelectedXformParameter();
-        // if not in rotation, next two lines of work would be wasted
-            float dx = v - mPreviousSliderValues.x;
-            mPreviousSliderValues.x = v;
-            Quaternion q = Quaternion.AngleAxis(dx, Vector3.right);
-        p.x = v;
-        SetSelectedXform(ref p, ref q);
+        if (ignoreListner)
+        {
+            return;
+        }
+
+        if (T.isOn)
+        {
+            float newX = X.GetSliderValue();
+            theWorld.GetComponent<TheWorld>().myTRS *= Matrix3x3Helpers.CreateTranslation(new Vector2(newX - prevXt, 0));
+            prevXt = newX;
+        }
+
+        if (S.isOn)
+        {
+            float newX = X.GetSliderValue();
+            theWorld.GetComponent<TheWorld>().myTRS = Matrix3x3Helpers.CreateTRS(new Vector2(prevXt, prevYt), prevZr, new Vector2(newX, prevYs));
+            prevXs = newX;
+        }
+
+
+
+
     }
     
     void YValueChanged(float v)
     {
-        Vector3 p = GetSelectedXformParameter();
-            // if not in rotation, next two lines of work would be wasted
-            float dy = v - mPreviousSliderValues.y;
-            mPreviousSliderValues.y = v;
-            Quaternion q = Quaternion.AngleAxis(dy, Vector3.up);
-        p.y = v;        
-        SetSelectedXform(ref p, ref q);
+        if (ignoreListner)
+        {
+            return;
+        }
+        if (T.isOn)
+        {
+            float newY = Y.GetSliderValue();
+            theWorld.GetComponent<TheWorld>().myTRS *= Matrix3x3Helpers.CreateTranslation(new Vector2(0, newY - prevYt ));
+            prevYt = newY;
+        }
+
+        if (S.isOn)
+        {
+            float newY = Y.GetSliderValue();
+            theWorld.GetComponent<TheWorld>().myTRS = Matrix3x3Helpers.CreateTRS(new Vector2(prevXt, prevYt), prevZr, new Vector2(prevXs, newY));
+            prevYs = newY;
+        }
+
     }
 
     void ZValueChanged(float v)
     {
-        Vector3 p = GetSelectedXformParameter();
-            // if not in rotation, next two lines of work would be wasterd
-            float dz = v - mPreviousSliderValues.z;
-            mPreviousSliderValues.z = v;
-            Quaternion q = Quaternion.AngleAxis(dz, Vector3.forward);
-        p.z = v;
-        SetSelectedXform(ref p, ref q);
-    }
 
-    public void SetSelectedObject(Transform g)
-    {
-        mSelected = g;
-        mPreviousSliderValues = Vector3.zero;
-        if (g != null)
-            ObjectName.text = "Selected:" + g.name;
-        else
-            ObjectName.text = "Selected: none";
-        ObjectSetUI();
-    }
-
-    public void ObjectSetUI()
-    {
-        Vector3 p = GetSelectedXformParameter();
-        X.SetSliderValue(p.x);  // do not need to call back for this comes from the object
-        Y.SetSliderValue(p.y);
-        Z.SetSliderValue(p.z);
-    }
-
-    private Vector3 GetSelectedXformParameter()
-    {
-        Vector3 p;
-        
-        if (T.isOn)
+        if (ignoreListner)
         {
-            if (mSelected != null)
-                p = mSelected.localPosition;
-            else
-                p = Vector3.zero;
-        }
-        else if (S.isOn)
-        {
-            if (mSelected != null)
-                p = mSelected.localScale;
-            else
-                p = Vector3.one;
-        }
-        else
-        {
-            p = Vector3.zero;
-        }
-        return p;
-    }
-
-    private void SetSelectedXform(ref Vector3 p, ref Quaternion q)
-    {
-        if (mSelected == null)
             return;
-
-        if (T.isOn)
-        {
-            mSelected.localPosition = p;
         }
-        else if (S.isOn)
+        if (R.isOn)
         {
-            mSelected.localScale = p;
-        } else
-        {
-            mSelected.localRotation *= q;
+            float newZ = Z.GetSliderValue();
+            theWorld.GetComponent<TheWorld>().myTRS *= Matrix3x3Helpers.CreateRotation(newZ-prevZr);
+            prevZr = newZ;
         }
     }
 }
