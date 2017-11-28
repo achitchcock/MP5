@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEditor;
 
 [System.Serializable]
 class Configuration {
@@ -29,6 +28,7 @@ public class TheWorld : MonoBehaviour {
     public Button reset;
     public Button saveButton;
     public Button loadButton;
+	public Text prompt;
 
     private GameObject mSelectedPoint;
     private GameObject mSelectedDirection;
@@ -538,7 +538,12 @@ public class TheWorld : MonoBehaviour {
 		string filePath = Path.Combine(Application.persistentDataPath, (isPlane ? "plane" : "cylinder") + "-data.json");
 		File.WriteAllText (filePath, jsonData);
 
-		EditorUtility.DisplayDialog ("Saved!", "saved to " + filePath, "OK");
+		prompt.text = "saved to " + filePath;
+		Invoke ("clearPrompt", 3);
+	}
+
+	void clearPrompt() {
+		prompt.text = "";
 	}
 
 	void loadFromFile() {
