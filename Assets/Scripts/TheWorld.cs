@@ -340,7 +340,8 @@ public class TheWorld : MonoBehaviour {
 
                 // get rotation applied
 
-                Vector2 rot = new Vector2(init.x, init.y);
+                Vector2 rot = new Vector2(init.x * Mathf.Cos(z_rot * Mathf.Deg2Rad) - init.y*Mathf.Sin(z_rot * Mathf.Deg2Rad), 
+                                            init.x * Mathf.Sin(z_rot*Mathf.Deg2Rad) + init.y*Mathf.Cos(z_rot*Mathf.Deg2Rad));
                 
                 // translate
                 Vector2 res = new Vector3(rot.x + x_trans, rot.y + z_trans);
