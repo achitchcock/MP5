@@ -27,8 +27,8 @@ public class TheWorld : MonoBehaviour {
     public GameObject controlPointSpheres;
     public GameObject xyzHandle;
     public Button reset;
-	public Button saveButton;
-	public Button loadButton;
+    public Button saveButton;
+    public Button loadButton;
 
     private GameObject mSelectedPoint;
     private GameObject mSelectedDirection;
@@ -77,6 +77,7 @@ public class TheWorld : MonoBehaviour {
         reset.onClick.AddListener(resetMesh);
 		saveButton.onClick.AddListener (saveToFile);
 		loadButton.onClick.AddListener (loadFromFile);
+
         xyzHandle.transform.FindChild("X").GetComponent<mouseDrag>().setDragListner(pointMovedX);
         xyzHandle.transform.FindChild("X").GetComponent<mouseDrag>().up = false;
         xyzHandle.transform.FindChild("Y").GetComponent<mouseDrag>().setDragListner(pointMovedY);
@@ -225,6 +226,9 @@ public class TheWorld : MonoBehaviour {
         }
     }
 
+
+
+
     void angleChanged(float angle)
     {
         if (!isPlane)
@@ -341,50 +345,26 @@ public class TheWorld : MonoBehaviour {
 
     void calculateUV()//Matrix3x3 trs)
     {
-
-
         uv = new List<Vector2>();
         int m = (int)mSlider.GetSliderValue();
         int n = (int)nSlider.GetSliderValue();
-
-        // extract these values from a matrix3x3
-
-        //float x_trans = 0.5f;
-        //float z_trans = 0.2f;
-        //float x_scale = 1.5f;
-       // float z_scale = 1.5f;
-        //float z_rot = 45;
-
 
         for (int i = 0; i < m; i++)
         {
             for (int j = 0; j < n; j++)
             {
-                
-                // Initial point
-                 float x = (((float)j % n) / (n - 1));
+                // initial point
+                float x = (((float)j % n) / (n - 1));
                 float y = (((float)i % m) / (m - 1));
 
-                // scale
-                //Vector2 init = new Vector2(x*x_scale, y*z_scale);
-
-                // get rotation applied
-
-                //Vector2 rot = new Vector2(init.x * Mathf.Cos(z_rot * Mathf.Deg2Rad) - init.y*Mathf.Sin(z_rot * Mathf.Deg2Rad), 
-                //                             init.x * Mathf.Sin(z_rot*Mathf.Deg2Rad) + init.y*Mathf.Cos(z_rot*Mathf.Deg2Rad));
-
-                // translate
-                //Vector2 res = new Vector3(rot.x + x_trans, rot.y + z_trans);
-
+                // TRS applied
                 uv.Add(Matrix3x3.MultiplyVector2(myTRS,new Vector2(x,y)));
-
             }
         }
     }
 
     void calculateTriangles()
     {
-        
         triangles.Clear();
         normals.Clear();
         adjacencies.Clear();
