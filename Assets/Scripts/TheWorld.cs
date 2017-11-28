@@ -326,8 +326,6 @@ public class TheWorld : MonoBehaviour {
 
     void calculateUV()//Matrix3x3 trs)
     {
-
-
         uv = new List<Vector2>();
         int m = (int)mSlider.GetSliderValue();
         int n = (int)nSlider.GetSliderValue();

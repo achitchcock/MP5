@@ -9,6 +9,11 @@ public class XfromControl : MonoBehaviour {
     public Text ObjectName;
     public GameObject theWorld;
     public Button resetTexture;
+    public Toggle Tm, Rm, Sm;
+
+    float autoScale;
+    bool up;
+
     float prevXt, prevYt;
     float prevXs, prevYs;
     float prevZr;
@@ -30,6 +35,10 @@ public class XfromControl : MonoBehaviour {
         ignoreListner = false;
         resetTexture.onClick.AddListener(resetTex);
 
+        Tm.isOn = false;
+        Sm.isOn = false;
+        Rm.isOn = false;
+
         T.isOn = true;
         R.isOn = false;
         S.isOn = false;
@@ -42,10 +51,50 @@ public class XfromControl : MonoBehaviour {
         prevYt = 0;
         // previous rotation
         prevZr = 0;
+
+        autoScale = 1;
+        up = true;
 	}
+    
+    void Update()
+    {
+        if (Sm.isOn)
+        {
+            if (up)
+            {
+                theWorld.GetComponent<TheWorld>().myTRS *= Matrix3x3Helpers.CreateScale(new Vector2(1.1f, 1.1f));
+                autoScale += 0.1f;
+                if (autoScale > 3)
+                {
+                    up = false;
+                }
+            }
+            else
+            {
+                theWorld.GetComponent<TheWorld>().myTRS *= Matrix3x3Helpers.CreateScale(new Vector2(0.9f, 0.9f));
+                autoScale -= 0.1f;
+                if (autoScale < -1)
+                {
+                    up = true;
+                }
+            }
+            
+        }
+        if (Rm.isOn)
+        {
+            theWorld.GetComponent<TheWorld>().myTRS *= Matrix3x3Helpers.CreateRotation(1);
+        }
+        if (Tm.isOn)
+        {
+            theWorld.GetComponent<TheWorld>().myTRS *= Matrix3x3Helpers.CreateTranslation(new Vector2(0.1f, 0));
+        }
+    }
 
     void resetTex()
     {
+        Tm.isOn = false;
+        Sm.isOn = false;
+        Rm.isOn = false;
         theWorld.GetComponent<TheWorld>().myTRS = Matrix3x3.identity;
         prevYs = 1;
         prevXs = 1;
