@@ -12,6 +12,7 @@ public class TheWorld : MonoBehaviour {
     public GameObject controlPointSpheres;
     public GameObject xyzHandle;
     public Button reset;
+    public Button resetTexture;
     private GameObject mSelectedPoint;
     private GameObject mSelectedDirection;
     private bool isPlane;
@@ -57,6 +58,7 @@ public class TheWorld : MonoBehaviour {
         //myTRS = Matrix3x3.MultiplyMatrix3x3(Matrix3x3Helpers.CreateRotation(45), myTRS);
         //myTRS = Matrix3x3.MultiplyMatrix3x3(Matrix3x3Helpers.CreateTranslation(new Vector2(-1.5f, 1)), myTRS);
         reset.onClick.AddListener(resetMesh);
+        resetTexture.onClick.AddListener(resetTex);
         xyzHandle.transform.FindChild("X").GetComponent<mouseDrag>().setDragListner(pointMovedX);
         xyzHandle.transform.FindChild("X").GetComponent<mouseDrag>().up = false;
         xyzHandle.transform.FindChild("Y").GetComponent<mouseDrag>().setDragListner(pointMovedY);
@@ -204,6 +206,12 @@ public class TheWorld : MonoBehaviour {
             initMeshType(1);
         }
     }
+
+    void resetTex()
+    {
+        myTRS = Matrix3x3.identity;
+    }
+
 
     void angleChanged(float angle)
     {
